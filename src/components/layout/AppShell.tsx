@@ -1,5 +1,5 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, LayoutTemplate, Package, Plus, Settings, Users } from 'lucide-react';
+import { LayoutDashboard, LayoutTemplate, Package, Plus, Repeat, Settings, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AppBanners, FolderStatusIcon } from './Banners';
@@ -11,6 +11,7 @@ const NAV = [
   { to: '/templates', label: 'Templates', icon: LayoutTemplate },
   { to: '/clients', label: 'Clients', icon: Users },
   { to: '/products', label: 'Products', icon: Package },
+  { to: '/recurring', label: 'Recurring', icon: Repeat },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 

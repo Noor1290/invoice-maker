@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/db/db';
 import { ActivityPanel, PaymentsPanel } from './PaymentsPanel';
+import { RecurringDialog } from '@/features/recurring/RecurringDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
@@ -27,6 +28,7 @@ import {
   FileMinus,
   FileText,
   Printer,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input, NativeSelect, Textarea } from '@/components/ui/input';
@@ -107,6 +109,7 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
   if (live && live.status !== 'draft') baseRef.current = live;
   const isCredit = initial.docType === 'credit_note';
   const docWord = isCredit ? 'credit note' : 'invoice';
+  const [repeatOpen, setRepeatOpen] = useState(false);
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const liveNumberRef = useRef(liveNumber);
@@ -552,6 +555,7 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
   return (
     <div className="flex h-full flex-col">
       {dialog}
+      {repeatOpen && <RecurringDialog invoice={baseRef.current} onClose={() => setRepeatOpen(false)} />}
       {printInvoice && <PrintPortal invoice={printInvoice} logoUrl={logoUrl} />}
       {/* Toolbar */}
       <div className="no-print flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-white px-4 py-2.5 sm:px-6">
@@ -603,6 +607,11 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
               <MenuItem onSelect={() => void duplicate()} disabled={!persisted}>
                 <Copy /> Duplicate invoice
               </MenuItem>
+              {status === 'issued' && !isCredit && (
+                <MenuItem onSelect={() => setRepeatOpen(true)}>
+                  <Repeat /> Repeat this invoice…
+                </MenuItem>
+              )}
               {status === 'issued' && !isCredit && (
                 <MenuItem onSelect={() => navigate(`/invoices/new?creditFor=${baseRef.current.id}`)}>
                   <FileMinus /> Create credit note
@@ -674,6 +683,14 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
             )}
 
             {isCredit && initial.creditNoteFor && <CreditNoteOf id={initial.creditNoteFor} />}
+            {status === 'draft' && initial.recurringRuleId && (
+              <Callout tone="info" icon={<Repeat />}>
+                Created by a recurring schedule for {formatDate(initial.recurringDate)}. Check it, then issue it.{' '}
+                <Link to="/recurring/review" className="font-medium underline">
+                  Review all recurring drafts
+                </Link>
+              </Callout>
+            )}
             {locked && live && !isCredit && (
               <Section title="Payments">
                 <PaymentsPanel invoice={live} />

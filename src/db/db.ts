@@ -53,6 +53,11 @@ export class AppDB extends Dexie {
       });
     // v4: device-local state (auto-save folder handle). Not part of backups.
     this.version(4).stores({ local: 'key' });
+    // v5: recurring schedules (status index) and drafts linked to their schedule.
+    this.version(5).stores({
+      recurring: 'id, nextRunDate, status, sourceInvoiceId',
+      invoices: 'id, &normalizedNumber, looseKey, status, sequenceId, clientId, issueDate, dueDate, updatedAt, recurringRuleId',
+    });
   }
 }
 

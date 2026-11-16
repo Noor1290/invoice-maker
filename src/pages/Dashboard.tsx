@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { AlertCircle, CircleDollarSign, FilePlus2, Hash, Plus, Search, Wallet, X } from 'lucide-react';
+import { AlertCircle, CircleDollarSign, FilePlus2, Hash, Plus, Repeat, Search, Wallet, X } from 'lucide-react';
 import { Page, PageHeader } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
 import { Input, NativeSelect } from '@/components/ui/input';
@@ -92,6 +92,7 @@ export function Dashboard() {
         }
       />
 
+      <RecurringNotice />
       {invoices.length === 0 ? (
         <Card className="flex flex-col items-center px-6 py-16 text-center">
           <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-navy-50 text-navy">
@@ -307,6 +308,27 @@ function TotalCard({
         </p>
       ))}
       <p className="mt-1 text-xs text-muted">{sub}</p>
+    </Card>
+  );
+}
+
+function RecurringNotice() {
+  const n = useLiveQuery(() => db.invoices.where('status').equals('draft').filter((i) => !!i.recurringRuleId).count(), []);
+  if (!n) return null;
+  return (
+    <Card className="mb-6 flex flex-wrap items-center gap-4 border-gold/40 bg-gold-50 px-5 py-4">
+      <span className="flex size-10 items-center justify-center rounded-xl bg-white text-gold-700 shadow-card">
+        <Repeat className="size-5" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-ink">
+          {n} recurring invoice{n === 1 ? ' is' : 's are'} ready to review
+        </p>
+        <p className="text-sm text-muted">Created as drafts by your schedules. Check them, then issue in one click.</p>
+      </div>
+      <Button asChild>
+        <Link to="/recurring/review">Review &amp; issue</Link>
+      </Button>
     </Card>
   );
 }

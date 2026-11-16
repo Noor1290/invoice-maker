@@ -146,6 +146,10 @@ export interface Invoice {
   payments: Payment[];
   history: ActivityEntry[];
   creditNoteFor?: string;
+  /** Set on drafts created by a recurring schedule. */
+  recurringRuleId?: string;
+  /** The schedule date this draft was created for. */
+  recurringDate?: string;
   voidReason?: string;
   createdAt: string;
   updatedAt: string;
@@ -250,11 +254,38 @@ export interface FolderSyncState {
   lastError?: string;
 }
 
+export type RecurringInterval = 'monthly' | 'quarterly' | 'yearly';
+export type RecurringStatus = 'active' | 'paused' | 'stopped' | 'finished';
+
+/** What each generated invoice is made from (descriptions/notes may use {month} {year}). */
+export interface RecurringContent {
+  sequenceId: string;
+  client: PartySnapshot;
+  lines: LineItem[];
+  notes: string;
+  currency: string;
+  vatRate: number;
+  termsDays: number;
+  templateId: string;
+}
+
 export interface RecurringRule {
   id: string;
+  name: string;
   sourceInvoiceId: string;
-  interval: 'monthly' | 'quarterly';
+  sourceNumber: string;
+  interval: RecurringInterval;
+  /** First invoice date; later dates keep its day of the month (31st → last day of shorter months). */
+  startDate: string; // yyyy-mm-dd
+  /** Date of the next invoice to create. */
   nextRunDate: string; // yyyy-mm-dd
-  active: boolean;
+  endDate?: string; // stop after this date (inclusive)
+  maxCount?: number; // or after this many invoices
+  createdCount: number;
+  status: RecurringStatus;
+  content: RecurringContent;
+  /** Every invoice created so far (the date is the duplicate guard). */
+  generated: { date: string; invoiceId: string; number: string }[];
   createdAt: string;
+  updatedAt: string;
 }

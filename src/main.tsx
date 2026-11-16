@@ -29,6 +29,12 @@ async function start() {
     console.error('Could not import data from the previous database', e);
     return null;
   });
+  // Recurring schedules: create any due drafts (including missed ones) before showing the app.
+  const { generateDueRecurring } = await import('./db/recurringRepo');
+  const recurringCreated = await generateDueRecurring().catch((e) => {
+    console.error('Recurring invoices could not be created', e);
+    return [];
+  });
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
@@ -36,6 +42,11 @@ async function start() {
   );
   // Auto-save to folder (if the user turned it on in Settings ▸ Data & backup).
   void import('./sync/folderSyncBrowser').then((m) => m.startFolderSync()).catch((e) => console.error(e));
+  if (recurringCreated.length) {
+    const { toast } = await import('sonner');
+    const n = recurringCreated.length;
+    setTimeout(() => toast.success(`${n} recurring invoice${n === 1 ? ' is' : 's are'} ready to review.`), 700);
+  }
   if (imported) {
     const { toast } = await import('sonner');
     setTimeout(() => toast.success('Your invoices and settings were moved to the new storage.'), 600);
