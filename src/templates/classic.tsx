@@ -623,8 +623,8 @@ export function LogoPlaceholderBox({ width, height }: { width: number; height: n
         justifyContent: 'center',
       }}
     >
-      <Text style={{ fontFamily: FONT.arial, fontSize: 8, fontWeight: 700, color: '#9AA0A6' }}>YOUR LOGO</Text>
-      <Text style={{ fontFamily: FONT.arial, fontSize: 6.5, color: '#9AA0A6', marginTop: 2 }}>Click to add in Settings</Text>
+      <Text style={{ fontFamily: FONT.arial, fontSize: 8, fontWeight: 700, color: '#5F6368' }}>YOUR LOGO</Text>
+      <Text style={{ fontFamily: FONT.arial, fontSize: 6.5, color: '#5F6368', marginTop: 2 }}>Click to add in Settings</Text>
     </View>
   );
 }

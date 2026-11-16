@@ -53,6 +53,7 @@ export function BackupSettings({ settings }: { settings: AppSettings }) {
 // ───────────────────────── Manual export / import ─────────────────────────
 
 function ManualBackup({ settings }: { settings: AppSettings }) {
+  const folder = useLiveQuery(() => db.local.get('folder'), []);
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ text: string; source: string } | null>(null);
 
@@ -92,6 +93,7 @@ function ManualBackup({ settings }: { settings: AppSettings }) {
           <input
             ref={fileRef}
             type="file"
+            aria-label="Choose a backup file to import"
             accept="application/json,.json"
             className="sr-only"
             tabIndex={-1}
@@ -103,8 +105,15 @@ function ManualBackup({ settings }: { settings: AppSettings }) {
           />
         </div>
         <p className="text-sm text-muted">
-          Last backup: <span className="font-medium text-ink">{formatDateTime(settings.lastBackupAt)}</span>. The backup is one
-          .json file with everything: invoices, clients, products, settings, numbering, templates and your logo.
+          Last exported backup: <span className="font-medium text-ink">{formatDateTime(settings.lastBackupAt)}</span>
+          {folder?.enabled && folder.lastSavedAt && (
+            <>
+              {' '}
+              · last automatic backup to your folder: <span className="font-medium text-ink">{formatDateTime(folder.lastSavedAt)}</span>
+            </>
+          )}
+          . The backup is one .json file with everything: invoices, clients, products, settings, numbering, recurring
+          schedules, templates and your logo.
         </p>
       </CardBody>
       <ImportDialog pending={pending} onClose={() => setPending(null)} />

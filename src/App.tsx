@@ -15,6 +15,7 @@ const ClientsPage = lazy(() => import('@/pages/ClientsPage').then((m) => ({ defa
 const ProductsPage = lazy(() => import('@/pages/ProductsPage').then((m) => ({ default: m.ProductsPage })));
 const RecurringPage = lazy(() => import('@/features/recurring/RecurringPage').then((m) => ({ default: m.RecurringPage })));
 const ReviewPage = lazy(() => import('@/features/recurring/ReviewPage').then((m) => ({ default: m.ReviewPage })));
+const GuidePage = lazy(() => import('@/features/guide/GettingStarted').then((m) => ({ default: m.GuidePage })));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 export function App() {
@@ -52,6 +53,7 @@ export function App() {
             <Route path="recurring" element={<RecurringPage />} />
             <Route path="recurring/review" element={<ReviewPage />} />
             <Route path="settings/:section?" element={<SettingsPage />} />
+            <Route path="guide" element={<GuidePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

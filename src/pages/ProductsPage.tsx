@@ -72,7 +72,7 @@ export function ProductsPage() {
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products and services" className="pl-9" />
             </label>
           </div>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line bg-band text-xs uppercase tracking-wide text-muted">
                 <tr>

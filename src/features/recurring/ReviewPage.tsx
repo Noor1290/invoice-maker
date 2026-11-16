@@ -138,7 +138,7 @@ export function ReviewPage() {
                 </Button>
               </div>
               {shown.templateId.startsWith('docx-') ? (
-                <div className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-4">
+                <div tabIndex={0} role="region" aria-label="Invoice preview" className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-4">
                   <DocxPreview invoice={shown} fit debounceMs={0} />
                 </div>
               ) : (

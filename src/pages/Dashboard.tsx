@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AlertCircle, CircleDollarSign, FilePlus2, Hash, Plus, Repeat, Search, Wallet, X } from 'lucide-react';
 import { Page, PageHeader } from '@/components/layout/AppShell';
+import { GuideCard } from '@/features/guide/GettingStarted';
 import { Button } from '@/components/ui/button';
 import { Input, NativeSelect } from '@/components/ui/input';
 import { Badge, Card } from '@/components/ui/misc';
@@ -93,6 +94,7 @@ export function Dashboard() {
       />
 
       <RecurringNotice />
+      <GuideCard />
       {invoices.length === 0 ? (
         <Card className="flex flex-col items-center px-6 py-16 text-center">
           <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-navy-50 text-navy">
@@ -191,7 +193,7 @@ export function Dashboard() {
             {filtered.length === 0 ? (
               <p className="px-6 py-12 text-center text-sm text-muted">No invoices match these filters.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-line bg-band text-xs uppercase tracking-wide text-muted">
                     <tr>
@@ -316,8 +318,8 @@ function RecurringNotice() {
   const n = useLiveQuery(() => db.invoices.where('status').equals('draft').filter((i) => !!i.recurringRuleId).count(), []);
   if (!n) return null;
   return (
-    <Card className="mb-6 flex flex-wrap items-center gap-4 border-gold/40 bg-gold-50 px-5 py-4">
-      <span className="flex size-10 items-center justify-center rounded-xl bg-white text-gold-700 shadow-card">
+    <Card className="mb-6 flex flex-wrap items-center gap-4 border-gold/40 bg-gold-50 px-5 py-4 max-sm:flex-col max-sm:items-start">
+      <span className="flex size-10 items-center justify-center rounded-xl bg-white text-gold-700 shadow-card max-sm:hidden">
         <Repeat className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">

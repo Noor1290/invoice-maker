@@ -3,7 +3,7 @@ import { createContext, useContext, type CSSProperties, type ReactNode } from 'r
 /**
  * A tiny, renderer-neutral style vocabulary. All lengths are in pt.
  * Templates use only these keys, so the same layout renders identically
- * as HTML (preview / print) and as a PDF (@react-pdf/renderer, Phase 3).
+ * as HTML (preview / print) and as a PDF (@react-pdf/renderer, see src/pdf).
  * Views are flex columns by default, as in Yoga / react-pdf.
  */
 export interface Style {

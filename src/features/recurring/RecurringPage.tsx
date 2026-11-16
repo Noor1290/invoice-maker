@@ -61,7 +61,7 @@ export function RecurringPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line bg-band text-xs uppercase tracking-wide text-muted">
                 <tr>

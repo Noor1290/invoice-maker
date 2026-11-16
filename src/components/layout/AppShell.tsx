@@ -1,5 +1,5 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, LayoutTemplate, Package, Plus, Repeat, Settings, Users } from 'lucide-react';
+import { CircleHelp, LayoutDashboard, LayoutTemplate, Package, Plus, Repeat, Settings, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AppBanners, FolderStatusIcon } from './Banners';
@@ -44,6 +44,14 @@ export function AppShell() {
           </nav>
           <div className="ml-auto flex items-center gap-2 md:ml-0">
             <FolderStatusIcon />
+            <Link
+              to="/guide"
+              className="inline-flex size-9 items-center justify-center rounded-md text-muted hover:bg-band hover:text-ink"
+              title="Getting started"
+              aria-label="Getting started guide"
+            >
+              <CircleHelp className="size-5" />
+            </Link>
             <Button asChild size="md">
               <Link to="/invoices/new">
                 <Plus /> New invoice

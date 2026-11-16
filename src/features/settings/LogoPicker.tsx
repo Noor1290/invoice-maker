@@ -63,6 +63,7 @@ export function LogoPicker({ url, onChange }: Props) {
         <input
           ref={inputRef}
           type="file"
+          aria-label="Choose a logo image"
           accept="image/png,image/jpeg,image/webp,image/svg+xml"
           className="sr-only"
           tabIndex={-1}

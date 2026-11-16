@@ -45,14 +45,14 @@ export function TemplatesPage() {
                 type="button"
                 onClick={() => setPreview(t.id)}
                 className="group relative block h-[300px] overflow-hidden border-b border-line bg-[#E6E9EF]"
-                aria-label={`Preview ${t.name}`}
               >
+                <span className="sr-only">{`Preview ${t.name}`}</span>
                 {measure && (
-                  <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 shadow-card" style={{ zoom: 0.36, width: PAGE_PX }}>
+                  <div aria-hidden className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 shadow-card" style={{ zoom: 0.36, width: PAGE_PX }}>
                     <InvoicePages invoice={samples[t.id]} logoUrl={logoUrl} measure={measure} logoPlaceholder />
                   </div>
                 )}
-                <span className="absolute inset-0 flex items-center justify-center bg-navy/0 opacity-0 transition group-hover:bg-navy/10 group-hover:opacity-100">
+                <span aria-hidden className="absolute inset-0 flex items-center justify-center bg-navy/0 opacity-0 transition group-hover:bg-navy/10 group-hover:opacity-100 group-focus-visible:opacity-100">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-navy shadow-pop">
                     <Eye className="size-4" /> Preview
                   </span>

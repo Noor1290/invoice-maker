@@ -73,6 +73,7 @@ export function WordTemplates({ settings, onSetDefault }: { settings: AppSetting
             <input
               ref={fileRef}
               type="file"
+              aria-label="Choose a Word template (.docx) to upload"
               accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="sr-only"
               tabIndex={-1}
@@ -163,7 +164,7 @@ function TagReference() {
         </CardDescription>
       </CardHeader>
       <CardBody className="grid gap-6">
-        <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 [&>*]:min-w-0">
           {DOCUMENT_TAGS.map((t) => (
             <TagRow key={t.tag} tag={`{${t.tag}}`} label={t.label} />
           ))}
@@ -174,7 +175,7 @@ function TagReference() {
             Put <code>{'{#items}'}</code> at the start and <code>{'{/items}'}</code> at the end of one table row: the row is
             repeated for every line item. Inside the loop you can use:
           </p>
-          <div className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+          <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 [&>*]:min-w-0">
             {ITEM_TAGS.map((t) => (
               <TagRow key={t.tag} tag={`{${t.tag}}`} label={t.label} />
             ))}
@@ -200,10 +201,10 @@ function TagRow({ tag, label }: { tag: string; label: string }) {
     <button
       type="button"
       onClick={() => void copy(tag)}
-      className="group flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left hover:bg-band"
+      className="group flex min-w-0 items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left hover:bg-band"
       title="Copy"
     >
-      <code className="text-[12.5px] font-semibold text-navy">{tag}</code>
+      <code className="shrink-0 text-[12.5px] font-semibold text-navy">{tag}</code>
       <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
         <span className="truncate">{label}</span>
         <Copy className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100" />

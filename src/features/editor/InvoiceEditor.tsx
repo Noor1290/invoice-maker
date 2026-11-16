@@ -543,7 +543,16 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
       });
       return;
     }
-    if (field === 'payments') return toast.info('Recording payments arrives in Phase 4.');
+    if (field === 'payments') {
+      if (status !== 'issued' || isCredit) return toast.info('Payments can be recorded once the invoice is issued.');
+      setTab('edit');
+      requestAnimationFrame(() => {
+        const btn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent?.includes('Record payment'));
+        btn?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        btn?.focus();
+      });
+      return;
+    }
     if (field === 'addLine') return addLine();
     const target = field === 'discount' ? 'lines.0.discountPct' : field;
     setTab('edit');
@@ -569,17 +578,17 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
           <Badge tone={meta.tone}>{meta.label}</Badge>
         </div>
         <SaveIndicator state={save} locked={locked} persisted={persisted} />
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
           {!locked && (
             <>
-              <Button variant="ghost" size="icon" onClick={undo} disabled={!hist.current.past.length} aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)">
+              <Button variant="ghost" size="icon" className="max-sm:hidden" onClick={undo} disabled={!hist.current.past.length} aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)">
                 <Undo2 />
               </Button>
-              <Button variant="ghost" size="icon" onClick={redo} disabled={!hist.current.future.length} aria-label="Redo (Ctrl+Shift+Z)" title="Redo (Ctrl+Shift+Z)">
+              <Button variant="ghost" size="icon" className="max-sm:hidden" onClick={redo} disabled={!hist.current.future.length} aria-label="Redo (Ctrl+Shift+Z)" title="Redo (Ctrl+Shift+Z)">
                 <Redo2 />
               </Button>
               <Button onClick={() => void issue()} className="ml-1">
-                <Send /> {isCredit ? 'Issue credit note' : 'Issue invoice'}
+                <Send /> <span className="max-sm:hidden">{isCredit ? 'Issue credit note' : 'Issue invoice'}</span><span className="sm:hidden">Issue</span>
               </Button>
             </>
           )}
@@ -592,10 +601,10 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
             disabled={pdfBusy}
             title="Download PDF (Ctrl+D)"
           >
-            {pdfBusy ? <Loader2 className="animate-spin" /> : <Download />} PDF
+            {pdfBusy ? <Loader2 className="animate-spin" /> : <Download />} <span className="max-sm:sr-only">PDF</span>
           </Button>
           <Button variant="outline" onClick={() => void downloadWord()} disabled={wordBusy} title="Download Word (.docx)">
-            {wordBusy ? <Loader2 className="animate-spin" /> : <FileText />} Word
+            {wordBusy ? <Loader2 className="animate-spin" /> : <FileText />} <span className="max-sm:sr-only">Word</span>
           </Button>
           <Menu>
             <MenuTrigger asChild>
@@ -985,7 +994,7 @@ function PreviewPane({
           <span className="font-medium uppercase tracking-wide">Live preview · Word template</span>
           <span>PDF: Print ▸ Save as PDF</span>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-6">
+        <div tabIndex={0} role="region" aria-label="Invoice preview" className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-6">
           <DocxPreview invoice={invoice} fit />
         </div>
       </div>

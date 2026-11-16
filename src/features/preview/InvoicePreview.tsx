@@ -143,7 +143,7 @@ export function InvoicePreview({ invoice, logoUrl, numberOverride, activeField, 
           </button>
         </div>
       </div>
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-6">
+      <div ref={scrollRef} tabIndex={0} role="region" aria-label="Invoice preview" className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-6">
         <style>{highlightCss}</style>
         {measure ? (
           <div

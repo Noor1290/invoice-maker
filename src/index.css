@@ -65,6 +65,14 @@
   }
 }
 
+/* Toast colours with WCAG AA contrast (sonner's defaults are slightly too light). */
+:root [data-sonner-toaster][data-sonner-theme='light'] {
+  --success-text: #05603a;
+  --error-text: #b42318;
+  --warning-text: #93370d;
+  --info-text: #0b2c5f;
+}
+
 /* ───────── Print: A4 pages only, no app chrome ───────── */
 .print-root {
   display: none;

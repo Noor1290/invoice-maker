@@ -60,6 +60,8 @@ export interface AppSettings {
   defaultSequenceId: string;
   onboarded: boolean;
   storageNoticeSeen: boolean;
+  /** The getting-started card on the dashboard was hidden. */
+  guideDismissed?: boolean;
   lastBackupAt?: string;
   createdAt: string;
   updatedAt: string;

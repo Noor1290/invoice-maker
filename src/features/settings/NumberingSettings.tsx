@@ -130,7 +130,7 @@ function NumberingLog({ sequences }: { sequences: NumberSequence[] }) {
           <p className="text-sm text-muted">Nothing recorded yet.</p>
         </CardBody>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line bg-band text-xs uppercase tracking-wide text-muted">
               <tr>
