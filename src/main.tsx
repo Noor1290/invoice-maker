@@ -34,6 +34,8 @@ async function start() {
       <App />
     </StrictMode>,
   );
+  // Auto-save to folder (if the user turned it on in Settings ▸ Data & backup).
+  void import('./sync/folderSyncBrowser').then((m) => m.startFolderSync()).catch((e) => console.error(e));
   if (imported) {
     const { toast } = await import('sonner');
     setTimeout(() => toast.success('Your invoices and settings were moved to the new storage.'), 600);

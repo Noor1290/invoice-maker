@@ -35,6 +35,16 @@ Invoices, clients, products, settings, logo and uploaded templates are stored **
 - **Import backup** restores everything, including the invoice numbering, so new invoices carry on from the right number.
 - Never commit backups or exported spreadsheets: `.gitignore` excludes `*backup*.json`, `*.xlsx`, `*.xls` and `*.csv`.
 
+### Auto-save to a folder (Edge / Chrome on a computer)
+
+**Settings ▸ Data & backup ▸ Automatically save invoices and backups to a folder on this computer.** Pick a folder (a folder inside OneDrive, Google Drive or Dropbox syncs to the cloud automatically). No sign-in is needed:
+
+- `Invoices/YYYY-MM/{InvoiceNo}_{ClientName}.pdf`: saved when an invoice is issued, and re-saved when a payment is recorded or it is voided.
+- `Backups/invoice-studio-backup-latest.json`: rewritten about 10 seconds after any change.
+- `Backups/invoice-studio-backup-YYYY-MM.json`: one per month, kept.
+
+If the browser needs permission again (e.g. after a restart), a banner asks you to reconnect the folder; nothing is lost in the meantime. **Restore from this folder** (or **Import backup**) brings everything back from these files. Firefox, Safari and phones can't write to folders; use **Export backup** there.
+
 The app asks the browser for *persistent storage* on first run so that data isn't cleared automatically when disk space runs low. Clearing browser data manually still deletes it.
 
 ## Tech

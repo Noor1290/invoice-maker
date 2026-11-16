@@ -6,7 +6,8 @@ import { nextAvailableNumber } from '@/db/invoiceRepo';
 import { getSettings } from '@/db/settingsRepo';
 import { useSettings } from '@/hooks/useSettings';
 import { newInvoice } from '@/lib/invoiceFactory';
-import { addDays, nowIso, uid } from '@/lib/utils';
+import { addDays, formatDate, nowIso, uid } from '@/lib/utils';
+import { partyFromClient } from '@/db/recordsRepo';
 import { Page } from '@/components/layout/AppShell';
 import { Callout } from '@/components/ui/misc';
 import { InvoiceEditor } from './InvoiceEditor';
@@ -32,7 +33,12 @@ export function EditorPage() {
     void (async () => {
       const s = await getSettings();
       if (id === 'new') {
-        const seq = s.sequences.find((x) => x.id === (params.get('seq') ?? s.defaultSequenceId)) ?? s.sequences[0];
+        const creditFor = params.get('creditFor');
+        const original = creditFor ? await db.invoices.get(creditFor) : undefined;
+        const seq =
+          (original ? s.sequences.find((x) => x.docType === 'credit_note') : undefined) ??
+          s.sequences.find((x) => x.id === (params.get('seq') ?? s.defaultSequenceId)) ??
+          s.sequences[0];
         const { number } = seq.mode === 'auto' ? await nextAvailableNumber(seq) : { number: '' };
         let inv = newInvoice(s, seq, number);
         const from = params.get('from');
@@ -44,12 +50,30 @@ export function EditorPage() {
             lines: src.lines.map((l) => ({ ...l, id: uid() })),
             notes: src.notes,
             currency: src.currency,
+            vatRate: src.vatRate,
             templateId: src.templateId,
             termsDays: src.termsDays,
             dueDate: addDays(inv.issueDate, src.termsDays),
             history: [{ at: nowIso(), type: 'duplicated', detail: `Duplicated from ${src.number}` }],
           };
         }
+        if (original) {
+          inv = {
+            ...inv,
+            docType: 'credit_note',
+            creditNoteFor: original.id,
+            client: { ...original.client },
+            lines: original.lines.map((l) => ({ ...l, id: uid() })),
+            currency: original.currency,
+            vatRate: original.vatRate,
+            templateId: original.templateId,
+            notes: `Credit note for invoice ${original.number} dated ${formatDate(original.issueDate)}.`,
+            history: [{ at: nowIso(), type: 'credit_note', detail: `Credit note for ${original.number}` }],
+          };
+        }
+        const clientId = params.get('client');
+        const client = clientId ? await db.clients.get(clientId) : undefined;
+        if (client && !src && !original) inv = { ...inv, client: partyFromClient(client) };
         if (!alive) return;
         loadedId.current = inv.id;
         setState({ invoice: inv, isNew: true });

@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { Controller, useFieldArray, useWatch, type Control, type UseFormReturn } from 'react-hook-form';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { BookmarkPlus, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { useState as useLocalState } from 'react';
+import { ProductDialog } from '@/pages/ProductsPage';
 import { Button } from '@/components/ui/button';
 import { DecimalInput } from '@/components/ui/decimal-input';
 import { Autocomplete } from '@/components/ui/autocomplete';
@@ -155,6 +157,9 @@ function LineRow({
   const { control, register, setValue, formState } = form;
   const errs = formState.errors.lines?.[i];
   const p = (k: string) => `lines.${i}.${k}`;
+  const [saveProductOpen, setSaveProductOpen] = useLocalState(false);
+  const desc = useWatch({ control, name: `lines.${i}.description` });
+  const productId = useWatch({ control, name: `lines.${i}.productId` });
   const fetchProducts = useRef((q: string) => searchProducts(q)).current;
 
   const pickProduct = (prod: Product) => {
@@ -200,6 +205,32 @@ function LineRow({
             />
           )}
         />
+        {!locked && desc.trim() && !productId && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 text-muted opacity-60 hover:text-navy group-hover:opacity-100 group-focus-within:opacity-100"
+            onClick={() => setSaveProductOpen(true)}
+            aria-label={`Save line ${i + 1} as a product`}
+            title="Save as product"
+            tabIndex={-1}
+          >
+            <BookmarkPlus />
+          </Button>
+        )}
+        {saveProductOpen && (
+          <ProductDialog
+            product="new"
+            currency={currency}
+            onClose={() => setSaveProductOpen(false)}
+            initial={{
+              name: desc.trim().slice(0, 80),
+              description: desc.trim(),
+              unitPrice: form.getValues(`lines.${i}.unitPrice`),
+              noVat: form.getValues(`lines.${i}.noVat`),
+            }}
+          />
+        )}
         {!locked && (
           <Button
             variant="ghost"

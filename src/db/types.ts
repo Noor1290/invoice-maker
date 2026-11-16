@@ -236,6 +236,20 @@ export interface NumberingLogEntry {
   detail?: string;
 }
 
+/**
+ * Device-local state (table `local`): never included in backups and never
+ * triggers an automatic backup. Holds the auto-save folder connection.
+ */
+export interface FolderSyncState {
+  key: 'folder';
+  enabled: boolean;
+  /** FileSystemDirectoryHandle (structured-cloneable in Chromium browsers). */
+  handle?: unknown;
+  folderName?: string;
+  lastSavedAt?: string;
+  lastError?: string;
+}
+
 export interface RecurringRule {
   id: string;
   sourceInvoiceId: string;

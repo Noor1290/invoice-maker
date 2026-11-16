@@ -7,6 +7,7 @@ import type {
   Product,
   RecurringRule,
   RetiredNumber,
+  FolderSyncState,
   StoredTemplate,
 } from './types';
 
@@ -25,6 +26,7 @@ export class AppDB extends Dexie {
   numberingLog!: EntityTable<NumberingLogEntry, 'id'>;
   recurring!: EntityTable<RecurringRule, 'id'>;
   retiredNumbers!: EntityTable<RetiredNumber, 'normalizedNumber'>;
+  local!: EntityTable<FolderSyncState, 'key'>;
 
   constructor(name = DB_NAME) {
     super(name);
@@ -49,6 +51,8 @@ export class AppDB extends Dexie {
         await tx.table('invoices').toCollection().modify(upgradeInvoiceRecord);
         await tx.table('products').toCollection().modify(upgradeProductRecord);
       });
+    // v4: device-local state (auto-save folder handle). Not part of backups.
+    this.version(4).stores({ local: 'key' });
   }
 }
 

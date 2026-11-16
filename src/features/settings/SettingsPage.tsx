@@ -1,7 +1,6 @@
 import { NavLink, Navigate, useParams } from 'react-router-dom';
 import { Building2, DatabaseBackup, Hash, SlidersHorizontal } from 'lucide-react';
 import { Page, PageHeader } from '@/components/layout/AppShell';
-import { Card, CardBody, CardDescription, CardHeader, CardTitle, Callout } from '@/components/ui/misc';
 import { useSettings } from '@/hooks/useSettings';
 import { defaultSettings } from '@/db/defaults';
 import { cn } from '@/lib/utils';
@@ -9,6 +8,7 @@ import { CompanySettings } from './CompanySettings';
 import { DefaultsSettings } from './DefaultsSettings';
 import { NumberingSettings } from './NumberingSettings';
 import { ThemeSettings } from './ThemeSettings';
+import { BackupSettings } from './BackupSettings';
 
 const SECTIONS = [
   { id: 'company', label: 'Company profile', icon: Building2 },
@@ -53,17 +53,7 @@ export function SettingsPage() {
           )}
           {section === 'defaults' && <DefaultsSettings settings={settings} />}
           {section === 'numbering' && <NumberingSettings settings={settings} />}
-          {section === 'backup' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Data & backup</CardTitle>
-                <CardDescription>Export and import backups, and export invoices to Excel/CSV.</CardDescription>
-              </CardHeader>
-              <CardBody>
-                <Callout tone="info">Backup and restore arrive in Phase 4.</Callout>
-              </CardBody>
-            </Card>
-          )}
+          {section === 'backup' && <BackupSettings settings={settings} />}
         </div>
       </div>
     </Page>

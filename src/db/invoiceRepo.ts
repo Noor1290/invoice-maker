@@ -337,3 +337,52 @@ export async function logActivity(id: string, entry: Omit<ActivityEntry, 'at'>):
       inv.history = [...inv.history, { ...entry, at: nowIso() }];
     });
 }
+
+// ───────────────────────── Payments ─────────────────────────
+
+export interface PaymentInput {
+  date: string;
+  amount: number;
+  method: string;
+  reference?: string;
+}
+
+/** Record a payment on an issued invoice. Status (Partially paid / Paid / Overdue) is derived from payments. */
+export async function addPayment(invoiceId: string, p: PaymentInput): Promise<Invoice> {
+  if (!(p.amount > 0)) throw new Error('Enter an amount greater than zero.');
+  if (!p.date) throw new Error('Enter the payment date.');
+  return db.transaction('rw', db.invoices, async () => {
+    const inv = await db.invoices.get(invoiceId);
+    if (!inv) throw new Error('Invoice not found.');
+    if (inv.status !== 'issued') throw new Error(inv.status === 'void' ? 'A void invoice cannot receive payments.' : 'Issue the invoice before recording payments.');
+    const now = nowIso();
+    const payment = { id: crypto.randomUUID(), date: p.date, amount: Math.round(p.amount * 100) / 100, method: p.method, reference: p.reference?.trim() ?? '' };
+    inv.payments = [...inv.payments, payment];
+    inv.history = [
+      ...inv.history,
+      { at: now, type: 'paid', detail: `${inv.currency} ${payment.amount.toFixed(2)} by ${payment.method}${payment.reference ? ` (${payment.reference})` : ''} on ${formatDate(payment.date)}` },
+    ];
+    inv.updatedAt = now;
+    await db.invoices.put(inv);
+    return inv;
+  });
+}
+
+export async function removePayment(invoiceId: string, paymentId: string): Promise<Invoice> {
+  return db.transaction('rw', db.invoices, async () => {
+    const inv = await db.invoices.get(invoiceId);
+    if (!inv) throw new Error('Invoice not found.');
+    const p = inv.payments.find((x) => x.id === paymentId);
+    if (!p) return inv;
+    const now = nowIso();
+    inv.payments = inv.payments.filter((x) => x.id !== paymentId);
+    inv.history = [...inv.history, { at: now, type: 'payment_removed', detail: `${inv.currency} ${p.amount.toFixed(2)} on ${formatDate(p.date)} removed` }];
+    inv.updatedAt = now;
+    await db.invoices.put(inv);
+    return inv;
+  });
+}
+
+export function sequenceForDoc(seqs: NumberSequence[], docType: Invoice['docType']): NumberSequence | undefined {
+  return seqs.find((s) => s.docType === docType);
+}

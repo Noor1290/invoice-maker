@@ -2,6 +2,7 @@ import { NavLink, Link, Outlet } from 'react-router-dom';
 import { LayoutDashboard, LayoutTemplate, Package, Plus, Settings, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AppBanners, FolderStatusIcon } from './Banners';
 
 const markUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 
@@ -15,7 +16,7 @@ const NAV = [
 
 export function AppShell() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex h-dvh flex-col">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:shadow-pop"
@@ -26,7 +27,7 @@ export function AppShell() {
       >
         Skip to content
       </a>
-      <header className="no-print sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
+      <header className="no-print z-40 shrink-0 border-b border-line bg-white/95 backdrop-blur">
         <div className="h-[3px] bg-navy" aria-hidden />
         <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-6 px-4 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2.5 rounded-md" aria-label="Invoice Studio, home">
@@ -40,7 +41,8 @@ export function AppShell() {
               <NavItem key={n.to} {...n} />
             ))}
           </nav>
-          <div className="ml-auto md:ml-0">
+          <div className="ml-auto flex items-center gap-2 md:ml-0">
+            <FolderStatusIcon />
             <Button asChild size="md">
               <Link to="/invoices/new">
                 <Plus /> New invoice
@@ -54,7 +56,8 @@ export function AppShell() {
           ))}
         </nav>
       </header>
-      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+      <AppBanners />
+      <main id="main" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto outline-none">
         <Outlet />
       </main>
     </div>

@@ -5,12 +5,13 @@ import { Toaster } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell';
 import { WelcomeDialog } from '@/features/onboarding/WelcomeDialog';
 import { Dashboard } from '@/pages/Dashboard';
-import { ComingSoon } from '@/pages/ComingSoon';
 import { needsOnboarding } from '@/db/settingsRepo';
 
 // Heavier screens are code-split.
 const EditorPage = lazy(() => import('@/features/editor/EditorPage').then((m) => ({ default: m.EditorPage })));
 const TemplatesPage = lazy(() => import('@/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })));
+const ClientsPage = lazy(() => import('@/pages/ClientsPage').then((m) => ({ default: m.ClientsPage })));
+const ProductsPage = lazy(() => import('@/pages/ProductsPage').then((m) => ({ default: m.ProductsPage })));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 export function App() {
@@ -26,8 +27,8 @@ export function App() {
             <Route index element={<Dashboard />} />
             <Route path="invoices/:id" element={<EditorPage />} />
             <Route path="templates" element={<TemplatesPage />} />
-            <Route path="clients" element={<ComingSoon title="Clients" phase={4} />} />
-            <Route path="products" element={<ComingSoon title="Products & services" phase={4} />} />
+            <Route path="clients" element={<ClientsPage />} />
+            <Route path="products" element={<ProductsPage />} />
             <Route path="settings/:section?" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

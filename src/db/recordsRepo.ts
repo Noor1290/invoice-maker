@@ -56,3 +56,30 @@ export async function searchProducts(q: string, limit = 8): Promise<Product[]> {
   const all = await db.products.orderBy('name').toArray();
   return all.filter((p) => matches(p.name, q) || matches(p.description, q)).slice(0, limit);
 }
+
+export async function saveClient(c: Omit<Client, 'createdAt' | 'updatedAt'> & Partial<Pick<Client, 'createdAt'>>): Promise<Client> {
+  const now = nowIso();
+  const name = c.name.trim();
+  if (!name) throw new Error('Enter the client name.');
+  const rec: Client = { ...c, name, createdAt: c.createdAt ?? now, updatedAt: now };
+  await db.clients.put(rec);
+  return rec;
+}
+
+export async function deleteClient(id: string) {
+  await db.clients.delete(id); // invoices keep their own copy of the client details
+}
+
+export async function saveProduct(p: Omit<Product, 'createdAt' | 'updatedAt'> & Partial<Pick<Product, 'createdAt'>>): Promise<Product> {
+  const now = nowIso();
+  const name = p.name.trim();
+  if (!name) throw new Error('Enter the product or service name.');
+  if (!(p.unitPrice >= 0)) throw new Error('Enter a price of 0 or more.');
+  const rec: Product = { ...p, name, createdAt: p.createdAt ?? now, updatedAt: now };
+  await db.products.put(rec);
+  return rec;
+}
+
+export async function deleteProduct(id: string) {
+  await db.products.delete(id);
+}

@@ -2,6 +2,9 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/db/db';
+import { ActivityPanel, PaymentsPanel } from './PaymentsPanel';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
@@ -21,6 +24,7 @@ import {
   Trash2,
   Undo2,
   Download,
+  FileMinus,
   Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -92,6 +96,11 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
   const { confirm, dialog } = useConfirm();
   const logoUrl = useLogoUrl(settings.company);
+  // Saved record, live: payments and activity recorded elsewhere show up immediately.
+  const live = useLiveQuery(() => (persisted ? db.invoices.get(initial.id) : undefined), [persisted, initial.id]);
+  if (live && live.status !== 'draft') baseRef.current = live;
+  const isCredit = initial.docType === 'credit_note';
+  const docWord = isCredit ? 'credit note' : 'invoice';
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const liveNumberRef = useRef(liveNumber);
@@ -313,9 +322,8 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
     }
     const ok = await confirm({
       title: `Issue ${inv.number}?`,
-      description:
-        'Issuing locks the invoice number and its content. To change it afterwards you will need to void it or create a credit note.',
-      confirmLabel: 'Issue invoice',
+      description: `Issuing locks the ${docWord} number and its content. To change it afterwards you will need to void it${isCredit ? '' : ' or create a credit note'}.`,
+      confirmLabel: isCredit ? 'Issue credit note' : 'Issue invoice',
     });
     if (!ok) return;
     window.clearTimeout(timer.current);
@@ -327,6 +335,9 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
       setStatus('issued');
       setSave({ kind: 'saved', at: new Date() });
       toast.success(`${res.invoice.number} issued and locked.`);
+      if (res.invoice.creditNoteFor) {
+        await logActivity(res.invoice.creditNoteFor, { type: 'credit_note', detail: `Credit note ${res.invoice.number} issued` });
+      }
       if (!persisted) {
         setPersisted(true);
         navigate(`/invoices/${res.invoice.id}`, { replace: true });
@@ -492,7 +503,7 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
   const meta = STATUS_META[displayStatus({ ...baseRef.current, status })];
 
   return (
-    <div className="flex h-[calc(100dvh-67px)] flex-col max-md:h-[calc(100dvh-111px)]">
+    <div className="flex h-full flex-col">
       {dialog}
       {printInvoice && <PrintPortal invoice={printInvoice} logoUrl={logoUrl} />}
       {/* Toolbar */}
@@ -517,7 +528,7 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
                 <Redo2 />
               </Button>
               <Button onClick={() => void issue()} className="ml-1">
-                <Send /> Issue invoice
+                <Send /> {isCredit ? 'Issue credit note' : 'Issue invoice'}
               </Button>
             </>
           )}
@@ -542,6 +553,11 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
               <MenuItem onSelect={() => void duplicate()} disabled={!persisted}>
                 <Copy /> Duplicate invoice
               </MenuItem>
+              {status === 'issued' && !isCredit && (
+                <MenuItem onSelect={() => navigate(`/invoices/new?creditFor=${baseRef.current.id}`)}>
+                  <FileMinus /> Create credit note
+                </MenuItem>
+              )}
               {status === 'issued' && (
                 <MenuItem onSelect={() => void doVoid()} danger>
                   <Ban /> Void invoice…
@@ -601,13 +617,20 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
                 ) : (
                   <>
                     Issued {baseRef.current.issuedAt ? `on ${formatDate(baseRef.current.issuedAt)}` : ''}. The number and content are
-                    locked. To change it, void it or create a credit note.
+                    locked. To change it, void it{isCredit ? '' : ' or create a credit note'}.
                   </>
                 )}
               </Callout>
             )}
 
-            <Section title="Invoice details">
+            {isCredit && initial.creditNoteFor && <CreditNoteOf id={initial.creditNoteFor} />}
+            {locked && live && !isCredit && (
+              <Section title="Payments">
+                <PaymentsPanel invoice={live} />
+              </Section>
+            )}
+
+            <Section title={isCredit ? 'Credit note details' : 'Invoice details'}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <NumberField
@@ -754,6 +777,11 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
             <Section title="Notes & terms">
               <Textarea id={fieldId('notes')} data-field="notes" rows={3} readOnly={locked} {...register('notes')} aria-label="Notes and terms" />
             </Section>
+            {persisted && (
+              <Section title="Activity">
+                <ActivityPanel history={live?.history ?? baseRef.current.history} />
+              </Section>
+            )}
             <p className="pb-6 text-center text-xs text-muted">
               <kbd className="kbd">Ctrl</kbd>+<kbd className="kbd">S</kbd> save · <kbd className="kbd">Ctrl</kbd>+
               <kbd className="kbd">Enter</kbd> add line · <kbd className="kbd">Ctrl</kbd>+<kbd className="kbd">Z</kbd> undo
@@ -892,5 +920,19 @@ function PreviewPane({
       activeField={activeField}
       onFieldClick={onField}
     />
+  );
+}
+
+function CreditNoteOf({ id }: { id: string }) {
+  const original = useLiveQuery(() => db.invoices.get(id), [id]);
+  if (!original) return null;
+  return (
+    <Callout tone="info">
+      Credit note for invoice{' '}
+      <Link to={`/invoices/${original.id}`} className="font-semibold underline">
+        {original.number}
+      </Link>{' '}
+      to {original.client.name || 'the client'} dated {formatDate(original.issueDate)}. Adjust the lines to the amounts being credited.
+    </Callout>
   );
 }
