@@ -1,0 +1,15 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+coverage
+*.tsbuildinfo
+
+# Never commit client data: spreadsheets, CSV exports and backups
+*.xlsx
+*.xls
+*.csv
+*backup*.json
+backups/
+

@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-navy: #0b2c5f;
+  --color-navy-700: #143e7d;
+  --color-navy-900: #071d40;
+  --color-navy-50: #eef2f8;
+  --color-gold: #c9a243;
+  --color-gold-700: #8a6d1f; /* gold for text on white: AA contrast */
+  --color-gold-50: #fbf6e9;
+  --color-ink: #1a2233;
+  --color-muted: #5f6368;
+  --color-band: #f3f5f9;
+  --color-line: #d9dee7;
+  --color-danger: #b42318;
+  --color-danger-50: #fef3f2;
+  --color-success: #067647;
+  --color-success-50: #ecfdf3;
+  --color-warning: #b54708;
+  --color-warning-50: #fffaeb;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  --shadow-card: 0 1px 2px rgb(11 44 95 / 0.05), 0 2px 8px rgb(11 44 95 / 0.06);
+  --shadow-pop: 0 8px 28px rgb(11 44 95 / 0.16), 0 2px 6px rgb(11 44 95 / 0.08);
+
+  --animate-in: fade-in 140ms ease-out;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-band text-ink font-sans;
+    font-feature-settings: 'cv11', 'tnum' 0;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-serif text-navy;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .kbd {
+    @apply rounded border border-line bg-white px-1 py-px font-sans text-[10.5px] font-medium text-ink shadow-[0_1px_0_#D9DEE7];
+  }
+}
+
+/* ───────── Print: A4 pages only, no app chrome ───────── */
+.print-root {
+  display: none;
+}
+
+@page {
+  /* Always A4 portrait, never US Letter. The invoice pages carry their own margins
+     (the same 18–48pt as the PDF), so the browser adds none. */
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body > *:not(.print-root) {
+    display: none !important;
+  }
+  .print-root {
+    display: block !important;
+  }
+  .print-root .invoice-pages {
+    gap: 0 !important;
+  }
+  .print-root .invoice-page {
+    box-shadow: none !important;
+    break-after: page;
+    break-inside: avoid;
+  }
+  .print-root .invoice-page:last-child {
+    break-after: auto;
+  }
+  .print-root * {
+    /* keep the navy bars, gold lines and banded rows */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
