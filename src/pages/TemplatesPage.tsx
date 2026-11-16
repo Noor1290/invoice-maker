@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, Eye, FileUp } from 'lucide-react';
+import { Check, Eye } from 'lucide-react';
+import { WordTemplates } from './WordTemplates';
 import { Page, PageHeader } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
-import { Badge, Callout, Card } from '@/components/ui/misc';
+import { Badge, Card } from '@/components/ui/misc';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLogoUrl, useSettings } from '@/hooks/useSettings';
 import { updateSettings } from '@/db/settingsRepo';
@@ -79,9 +80,7 @@ export function TemplatesPage() {
         })}
       </div>
 
-      <Callout tone="info" icon={<FileUp />} className="mt-8">
-        Uploading your own Word (.docx), PDF or image templates arrives in Phases 5 and 6.
-      </Callout>
+      <WordTemplates settings={settings} onSetDefault={setDefault} />
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         {preview && measure && (

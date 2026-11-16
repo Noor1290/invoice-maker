@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { db } from '@/db/db';
 import type { FolderSyncState, Invoice } from '@/db/types';
 import { createBackupJson, importBackup, type ImportMode } from '@/db/backup';
-import { BACKUPS_DIR, FolderSyncEngine, listFiles, readTextAt, type DirHandleLike } from './folder';
+import { BACKUPS_DIR, FolderSyncEngine, listFiles, readTextAt, type DirHandleLike, type RenderedDocument } from './folder';
 import { attachChangeHooks } from './hooks';
 
 /** File System Access API is available in Chromium desktop browsers (Edge, Chrome). */
@@ -26,13 +26,17 @@ async function getRoot(): Promise<DirHandleLike | 'reconnect' | null> {
   return perm === 'granted' ? h : 'reconnect';
 }
 
-async function renderPdf(inv: Invoice): Promise<Blob> {
+async function renderDocument(inv: Invoice): Promise<RenderedDocument> {
+  if (inv.templateId.startsWith('docx-')) {
+    const { invoiceWordBlob } = await import('@/word/browser');
+    return { data: await invoiceWordBlob(inv), ext: 'docx' };
+  }
   const settings = await db.settings.get('app');
   const logo = settings?.company.logo;
   const url = logo ? URL.createObjectURL(logo) : null;
   try {
     const { renderInvoicePdf } = await import('@/pdf/renderPdf');
-    return await renderInvoicePdf(inv, url);
+    return { data: await renderInvoicePdf(inv, url), ext: 'pdf' };
   } finally {
     if (url) URL.revokeObjectURL(url);
   }
@@ -41,7 +45,7 @@ async function renderPdf(inv: Invoice): Promise<Blob> {
 export const folderSync = new FolderSyncEngine({
   getRoot,
   loadInvoice: (id) => db.invoices.get(id),
-  renderPdf,
+  renderDocument,
   exportBackup: createBackupJson,
   onSaved: async (at) => {
     await db.local.update('folder', { lastSavedAt: at, lastError: undefined });

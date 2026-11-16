@@ -25,6 +25,7 @@ import {
   Undo2,
   Download,
   FileMinus,
+  FileText,
   Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,8 @@ import { amountInWords } from '@/lib/amountInWords';
 import { displayStatus, STATUS_META } from '@/lib/status';
 import { addDays, cn, formatDate } from '@/lib/utils';
 import { useLogoUrl } from '@/hooks/useSettings';
-import { BUILT_IN_TEMPLATES } from '@/templates/registry';
+import { useTemplateOptions } from '@/hooks/useTemplateOptions';
+import { DocxPreview } from '@/word/DocxPreview';
 import { CURRENCIES } from '@/features/settings/DefaultsSettings';
 import { InvoicePreview } from '@/features/preview/InvoicePreview';
 import { fieldId, invoiceFormSchema, toForm, type InvoiceForm } from './formSchema';
@@ -96,6 +98,10 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
   const { confirm, dialog } = useConfirm();
   const logoUrl = useLogoUrl(settings.company);
+  const templateOptions = useTemplateOptions();
+  const templateId = useWatch({ control, name: 'templateId' });
+  const wordTemplate = templateId?.startsWith('docx-');
+  const [wordBusy, setWordBusy] = useState(false);
   // Saved record, live: payments and activity recorded elsewhere show up immediately.
   const live = useLiveQuery(() => (persisted ? db.invoices.get(initial.id) : undefined), [persisted, initial.id]);
   if (live && live.status !== 'draft') baseRef.current = live;
@@ -417,8 +423,49 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
     return { ...inv, status, number: liveNumberRef.current.trim() || inv.number };
   };
 
+  /** Save the draft first (the document carries its number). Returns the invoice to output, or null. */
+  const prepareOutput = async (what: string): Promise<Invoice | null> => {
+    await commitActiveField();
+    if (!locked) {
+      if (numberStatus.current.blocked) {
+        toast.error(numberStatus.current.message);
+        return null;
+      }
+      if (!(await saveRef.current(true))) {
+        toast.error(`The invoice could not be saved, so no ${what} was created. Check the highlighted fields.`);
+        return null;
+      }
+    }
+    return locked ? baseRef.current : buildInvoice();
+  };
+
+  const downloadWord = async () => {
+    if (wordBusy) return;
+    const inv = await prepareOutput('Word file');
+    if (!inv) return;
+    setWordBusy(true);
+    const toastId = toast.loading('Creating Word document…');
+    try {
+      const { invoiceWordBlob } = await import('@/word/browser');
+      const blob = await invoiceWordBlob(inv);
+      const name = invoiceFileName(inv.number, inv.client.name, 'docx');
+      downloadBlob(blob, name);
+      await logActivity(inv.id, { type: 'downloaded', detail: `Word: ${name}` });
+      toast.success(`Downloaded ${name}`, { id: toastId });
+    } catch (e) {
+      toast.error(`Could not create the Word document: ${(e as Error).message}`, { id: toastId });
+    } finally {
+      setWordBusy(false);
+    }
+  };
+
   const downloadPdf = async () => {
     if (pdfBusy) return;
+    if (wordTemplate) {
+      toast.info('This invoice uses a Word template. In the print window, choose “Save as PDF” as the printer.', { duration: 8000 });
+      await print();
+      return;
+    }
     await commitActiveField();
     if (!locked) {
       if (numberStatus.current.blocked) {
@@ -542,6 +589,9 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
             title="Download PDF (Ctrl+D)"
           >
             {pdfBusy ? <Loader2 className="animate-spin" /> : <Download />} PDF
+          </Button>
+          <Button variant="outline" onClick={() => void downloadWord()} disabled={wordBusy} title="Download Word (.docx)">
+            {wordBusy ? <Loader2 className="animate-spin" /> : <FileText />} Word
           </Button>
           <Menu>
             <MenuTrigger asChild>
@@ -755,7 +805,7 @@ export function InvoiceEditor({ initial, isNew, settings }: { initial: Invoice; 
                 </Field>
                 <Field htmlFor={fieldId('templateId')} label="Template" className="sm:col-span-2">
                   <NativeSelect id={fieldId('templateId')} data-field="templateId" disabled={locked} {...register('templateId')}>
-                    {BUILT_IN_TEMPLATES.map((t) => (
+                    {templateOptions.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.name}
                       </option>
@@ -912,6 +962,17 @@ function PreviewPane({
     [base, deferred, status, settings],
   );
   return (
+    invoice.templateId.startsWith('docx-') ? (
+      <div className={cn('flex min-h-0 min-w-0 flex-col', className)}>
+        <div className="no-print flex items-center justify-between border-b border-line bg-white/80 px-4 py-2 text-xs text-muted">
+          <span className="font-medium uppercase tracking-wide">Live preview · Word template</span>
+          <span>PDF: Print ▸ Save as PDF</span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto bg-[#E6E9EF] p-6">
+          <DocxPreview invoice={invoice} fit />
+        </div>
+      </div>
+    ) : (
     <InvoicePreview
       className={cn('min-h-0 min-w-0', className)}
       invoice={invoice}
@@ -920,6 +981,7 @@ function PreviewPane({
       activeField={activeField}
       onFieldClick={onField}
     />
+    )
   );
 }
 

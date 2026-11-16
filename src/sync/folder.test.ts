@@ -60,7 +60,8 @@ class MemDir implements DirHandleLike {
 // The PDF content here is a stand-in that records what was rendered (real PDF output is tested in pdf.test.tsx).
 const fakePdf = async (inv: Invoice) => {
   const t = invoiceTotals(inv.lines, inv.vatRate, inv.payments);
-  return new Blob([`PDF ${inv.number} status=${inv.status} balance=${t.balanceDue.toFixed(2)}`]);
+  const ext = inv.templateId.startsWith('docx-') ? ('docx' as const) : ('pdf' as const);
+  return { ext, data: new Blob([`${ext.toUpperCase()} ${inv.number} status=${inv.status} balance=${t.balanceDue.toFixed(2)}`]) };
 };
 
 let root: MemDir;
@@ -76,7 +77,7 @@ beforeEach(async () => {
   engine = new FolderSyncEngine({
     getRoot: async () => root,
     loadInvoice: (id) => db.invoices.get(id),
-    renderPdf: fakePdf,
+    renderDocument: fakePdf,
     exportBackup: createBackupJson,
     now: () => now,
   });
@@ -106,6 +107,18 @@ describe('auto-save to folder', () => {
     expect(await read('Invoices', '2026-10', 'PSINV1245_ABC Ltd.pdf')).toBe('PDF PSINV1245 status=issued balance=1150.00');
     expect(engine.getStatus().state).toBe('ok');
     expect(engine.getStatus().lastSavedAt).toBe(now.toISOString());
+  });
+
+  it('invoices on an uploaded Word template are saved as .docx', async () => {
+    const s = await getSettings();
+    const seq = s.sequences[0];
+    const inv = newInvoice(s, seq, (await nextAvailableNumber(seq)).number);
+    inv.client.name = 'ABC Ltd';
+    inv.templateId = 'docx-1234';
+    inv.lines[0] = { ...inv.lines[0], description: 'Fees', unitPrice: 1000 };
+    await issueInvoice(inv);
+    await engine.flush();
+    expect(await read('Invoices', inv.issueDate.slice(0, 7), 'PSINV1245_ABC Ltd.docx')).toContain('DOCX PSINV1245');
   });
 
   it('drafts are not saved as PDFs', async () => {
@@ -154,7 +167,7 @@ describe('auto-save to folder', () => {
     const e2 = new FolderSyncEngine({
       getRoot: async () => root,
       loadInvoice: (id) => db.invoices.get(id),
-      renderPdf: fakePdf,
+      renderDocument: fakePdf,
       exportBackup: createBackupJson,
       backupDelayMs: 50,
     });
@@ -197,7 +210,7 @@ describe('auto-save to folder', () => {
     const e2 = new FolderSyncEngine({
       getRoot: async () => (allowed ? root : 'reconnect'),
       loadInvoice: (id) => db.invoices.get(id),
-      renderPdf: fakePdf,
+      renderDocument: fakePdf,
       exportBackup: createBackupJson,
     });
     e2.queueBackup();

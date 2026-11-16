@@ -26,6 +26,13 @@ npm run preview    # serve the production build
 
 GitHub Pages serves a project site at `https://<username>.github.io/<repository-name>/`. The workflow sets the Vite base path from the repository name automatically, so the site works whatever the repository is called (e.g. a repository named `invoice-studio` is served at `/invoice-studio/`). URLs use a hash (`/#/settings/numbering`), so refreshing any page never shows a GitHub 404. After the first visit the app is cached by a service worker and works offline; it can also be installed as an app (browser menu ▸ *Install*).
 
+## Word export and your own Word templates
+
+- **Word** (next to **PDF** in the editor) downloads an editable `.docx` of any invoice or credit note.
+- **Templates ▸ Your Word templates**: upload your own `.docx` with tags such as `{invoice_number}`, `{client_name}`, `{total_vat_exclusive}`, `{vat_rate}`, `{vat_total}`, `{total_vat_inclusive}`, `{balance_due}`. Put `{#items}` … `{/items}` in one table row to repeat it for each line item (`{no} {description} {qty} {unit_price} {discount} {amount}`). The **Tag reference** lists every tag with a copy button, and **Sample .docx** contains all of them.
+- On upload the app lists the tags it found and warns about unknown, renamed (`{total_due}` → `{total_vat_inclusive}`) or missing ones.
+- Invoices on a Word template download as Word in one click; for a PDF use **Print ▸ Save as PDF**. Folder auto-save stores their `.docx`.
+
 ## ⚠️ Back up your data
 
 Invoices, clients, products, settings, logo and uploaded templates are stored **in this browser on this computer** (IndexedDB database `invoice-studio-db`).

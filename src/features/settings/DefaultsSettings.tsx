@@ -8,7 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Card, CardBody, CardDescription, CardHeader, CardTitle } from '@/components/ui/misc';
 import type { AppSettings } from '@/db/types';
 import { updateSettings } from '@/db/settingsRepo';
-import { BUILT_IN_TEMPLATES } from '@/templates/registry';
+import { useTemplateOptions } from '@/hooks/useTemplateOptions';
 
 export const CURRENCIES = ['MUR', 'USD', 'EUR', 'GBP', 'ZAR', 'INR', 'AUD', 'CAD', 'CHF', 'AED', 'SGD', 'MGA', 'KES'];
 
@@ -28,6 +28,7 @@ type Out = z.output<typeof schema>;
 
 export function DefaultsSettings({ settings }: { settings: AppSettings }) {
   const d = settings.defaults;
+  const templateOptions = useTemplateOptions();
   const { register, handleSubmit, formState, reset } = useForm<In, unknown, Out>({
     resolver: zodResolver(schema),
     defaultValues: { ...d, vatRate: String(d.vatRate), termsDays: String(d.termsDays) },
@@ -68,7 +69,7 @@ export function DefaultsSettings({ settings }: { settings: AppSettings }) {
           </div>
           <Field htmlFor="templateId" label="Default template">
             <NativeSelect id="templateId" {...register('templateId')}>
-              {BUILT_IN_TEMPLATES.map((t) => (
+              {templateOptions.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
                 </option>

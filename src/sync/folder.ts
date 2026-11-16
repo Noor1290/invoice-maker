@@ -4,7 +4,8 @@ import { invoiceFileName } from '@/lib/filename';
 /**
  * Auto-save to a folder on this computer (File System Access API).
  *
- *   <folder>/Invoices/YYYY-MM/{InvoiceNo}_{ClientName}.pdf      (month = invoice date)
+ *   <folder>/Invoices/YYYY-MM/{InvoiceNo}_{ClientName}.pdf      (month = invoice date;
+ *                                                                .docx for uploaded Word templates)
  *   <folder>/Backups/invoice-studio-backup-latest.json          (after every change, debounced)
  *   <folder>/Backups/invoice-studio-backup-YYYY-MM.json         (one per month, kept)
  *
@@ -72,8 +73,13 @@ export const INVOICES_DIR = 'Invoices';
 export const BACKUPS_DIR = 'Backups';
 export const LATEST_BACKUP = 'invoice-studio-backup-latest.json';
 
-export function invoicePdfPath(inv: Pick<Invoice, 'issueDate' | 'number' | 'client'>): string[] {
-  return [INVOICES_DIR, (inv.issueDate || '0000-00').slice(0, 7), invoiceFileName(inv.number, inv.client.name, 'pdf')];
+export function invoicePdfPath(inv: Pick<Invoice, 'issueDate' | 'number' | 'client'>, ext: 'pdf' | 'docx' = 'pdf'): string[] {
+  return [INVOICES_DIR, (inv.issueDate || '0000-00').slice(0, 7), invoiceFileName(inv.number, inv.client.name, ext)];
+}
+
+export interface RenderedDocument {
+  data: Blob;
+  ext: 'pdf' | 'docx';
 }
 
 export function monthlyBackupName(now: Date): string {
@@ -94,7 +100,8 @@ export interface EngineOptions {
   /** The folder, 'reconnect' if permission must be granted again, or null when auto-save is off. */
   getRoot: () => Promise<DirHandleLike | 'reconnect' | null>;
   loadInvoice: (id: string) => Promise<Invoice | undefined>;
-  renderPdf: (inv: Invoice) => Promise<Blob>;
+  /** PDF for built-in templates; the filled .docx for uploaded Word templates. */
+  renderDocument: (inv: Invoice) => Promise<RenderedDocument>;
   exportBackup: () => Promise<string>;
   onSaved?: (at: string) => void | Promise<void>;
   onError?: (message: string) => void | Promise<void>;
@@ -198,7 +205,10 @@ export class FolderSyncEngine {
       const ids = [...this.pdfQueue];
       for (const id of ids) {
         const inv = await this.o.loadInvoice(id);
-        if (inv && inv.status !== 'draft') await writeFileAt(root, invoicePdfPath(inv), await this.o.renderPdf(inv));
+        if (inv && inv.status !== 'draft') {
+          const doc = await this.o.renderDocument(inv);
+          await writeFileAt(root, invoicePdfPath(inv, doc.ext), doc.data);
+        }
         this.pdfQueue.delete(id);
       }
       if (this.backupDue) {

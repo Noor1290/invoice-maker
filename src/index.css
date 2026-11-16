@@ -101,6 +101,15 @@
   .print-root .invoice-page:last-child {
     break-after: auto;
   }
+  /* Uploaded Word templates (rendered by docx-preview): one section per page */
+  .print-root section.docx {
+    box-shadow: none !important;
+    margin: 0 !important;
+    break-after: page;
+  }
+  .print-root section.docx:last-of-type {
+    break-after: auto;
+  }
   .print-root * {
     /* keep the navy bars, gold lines and banded rows */
     -webkit-print-color-adjust: exact;
