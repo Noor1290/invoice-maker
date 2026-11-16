@@ -22,7 +22,7 @@ export interface Palette {
   white: string;
 }
 
-const FIXED = { grey: '#5F6368', light: '#9AA0A6', ink: '#202124', line: '#D9DEE7', white: '#FFFFFF' };
+const FIXED = { grey: '#5F6368', light: '#676D74', ink: '#202124', line: '#D9DEE7', white: '#FFFFFF' };
 
 export const DEFAULT_PALETTE: Palette = {
   navy: DEFAULT_THEME.primary,

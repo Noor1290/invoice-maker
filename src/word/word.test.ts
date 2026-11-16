@@ -120,6 +120,8 @@ describe('built-in templates → Word', () => {
     }
     const xml = new PizZip(docx).file('word/document.xml')!.asText();
     expect(xml).toContain('<w:tblHeader'); // header row repeats on every page
+    expect(xml).toContain('676D74'); // captions in the readable grey
+    expect(xml).not.toContain('9AA0A6');
     const footer = Object.keys(new PizZip(docx).files).find((f) => f.startsWith('word/footer'))!;
     expect(new PizZip(docx).file(footer)!.asText()).toMatch(/PAGE|NUMPAGES/);
   });

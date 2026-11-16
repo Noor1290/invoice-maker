@@ -108,6 +108,9 @@ describe('PDF generation', () => {
     const htmlPages = html.match(/class="invoice-page"/g)!.length;
     const pdfPages = (await pdfText(await render(inv))).length;
     expect(pdfPages).toBe(htmlPages);
+    // captions (#, signature line) use the AA grey, never the old light grey
+    expect(html.toLowerCase()).toContain('#676d74');
+    expect(html.toLowerCase()).not.toContain('#9aa0a6');
   }, 60_000);
 });
 
